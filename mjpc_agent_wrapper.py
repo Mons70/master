@@ -1,12 +1,11 @@
 # %%
 import matplotlib.pyplot as plt
-import mediapy as media
 import mujoco
 import numpy as np
 import pathlib
 import cv2
-import csv
 import json
+import gc
 
 # set current directory: mujoco_mpc/python/mujoco_mpc
 from mujoco_mpc import agent as agent_lib
@@ -120,10 +119,11 @@ def set_initial_state(model, data, qpos,qvel,time):
 def set_random_initial_state(model,data,qpos,qvel,time):
     # rollout
     mujoco.mj_resetData(model, data)
-    horizontal_pos = (np.random.rand(1)*1.8) - 0.9 
+    horizontal_pos = (np.random.rand(1)*3.6) - 1.8
     vertical_pos = (np.random.rand(1)*2*np.pi) - np.pi
     data.qpos = [horizontal_pos[0], vertical_pos[0]]
-    
+    if -0.1 <= horizontal_pos <= 0.1 and vertical_pos == 0:
+        vertical_pos = vertical_pos + np.random.rand(1)[0]
     # cache initial state
     qpos[:, 0] = data.qpos
     qvel[:, 0] = data.qvel
@@ -150,6 +150,7 @@ def init_agent_cost_terms(agent, time_horizon):
 def run_planner(model, agent, data, renderer, time_horizon, random_initial_state:bool = False, save_trajectory:bool = False, savepath:str = "./trajectories.csv"):
     #time horizon
     T = time_horizon
+    time_stop = None
 
     #trajectories
     qpos, qvel, ctrl, time = init_trajectories(model, T)
@@ -213,15 +214,17 @@ def run_planner(model, agent, data, renderer, time_horizon, random_initial_state
             pixels = renderer.render()
             frames.append(pixels)
 
-        if cost_total[0][t] < 0.005:
+        if cost_total[0][t] < 0.005 and time_stop == None:
+            time_stop = t
+        elif cost_total[0][t] < 0.005 and time_stop + 100 == t:
             qpos = qpos[:, :t+1]
             qvel = qpos[:, :t+1]
             ctrl = ctrl[:, :t+1]
             cost_terms = cost_terms[:,:t+1]
             cost_total = cost_total[:,:t+1]
             break
-    # reset
-    agent.reset()
+    # close agent to avoid memory heaping up when rerunning planner several times
+    agent.close()
 
     # If a renderer was specified, render video from frames and write to file
     if render:

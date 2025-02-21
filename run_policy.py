@@ -253,7 +253,7 @@ def main():
     # Run planner
     #qpos, qvel, ctrl, cost_terms, cost_total = run_planner(model, agent, data, renderer, T, True, False, savepath = f'./saved_trajectories/trajectories_model_{i}.csv')
 
-    states, actions, rewards, total_reward = run_policy(model, agent, data, renderer, T, True, policy_path="/home/mons/dev/private/master/robomimic/robomimic/./bc_trained_models/bc/20250215141548/models/model_epoch_8000.pth")
+    states, actions, rewards, total_reward = run_policy(model, agent, data, renderer, T, True, policy_path="/home/mons/dev/private/master/robomimic/robomimic/./bc_trained_models/bc/20250221120237/models/model_epoch_12000.pth")
     print("STAAAAAAAAAAAAAAAAAAAAAAATES")
     print(states[-10:])
     # plot states
