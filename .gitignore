@@ -1,3 +1,6 @@
+/__pycache__/
 /mujoco_mpc/
 /robomimic/
+/master_venv/
 /saved_trajectories/
+/policy-inference-simulations/
