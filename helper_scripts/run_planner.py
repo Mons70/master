@@ -1,3 +1,5 @@
+import sys
+import os
 import argparse
 from mjpc_agent_wrapper import *
 from tqdm import tqdm
@@ -5,8 +7,13 @@ from tqdm import tqdm
 def main(args):
     T = args.max_demo_duration
     num_demos = args.num_demonstrations
+    terminal_width = os.get_terminal_size().columns 
 
-    for i in tqdm(range(0, num_demos)):
+    for i in range(0, num_demos):
+        print('#' * terminal_width)
+        demo_string = f'Calculating demo {i} out of {num_demos}...'
+        print(f'{demo_string}')
+        print('-' * len(demo_string))
         # Initialize mpc agent
         mpc_agent = MJPC_AGENT(task_path="/home/mons/dev/private/master/mujoco_mpc/build/mjpc/tasks/quadruped/task_flat.xml", task_id="Quadruped Flat", 
                             time_horizon= T, render=True)
@@ -16,15 +23,16 @@ def main(args):
 
         mpc_agent.set_camera_view(xml_cam_id="robot_cam")
 
-        # Run MPC planner
-        mpc_agent.run_planner(random_initial_state=False, save_trajectory=True, savepath = f'./saved_trajectories/ep_{i}.json')
-
+        # Run MPC planner, return qpos observation size, qvel is the remaining half of a state
+        obs_size = mpc_agent.run_planner(random_initial_state=False, save_trajectory=True, savepath = f'./saved_trajectories/ep_{i}.json')
+        print('#' * terminal_width)
         # # plot states, don't show
         # mpc_agent.plot_states()
         # # plot actions, don't show
         # mpc_agent.plot_actions()
         # # plot costs
         # mpc_agent.plot_rewards(show=True)
+    sys.exit(obs_size)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -42,4 +50,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    main(args)
+    sys.stdout.write(str(main(args)))

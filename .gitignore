@@ -3,4 +3,6 @@
 /robomimic/
 /master_venv/
 /saved_trajectories/
+/mpc-simulations/
 /policy-inference-simulations/
+MUJOCO_LOG.TXT

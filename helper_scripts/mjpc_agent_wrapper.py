@@ -8,6 +8,7 @@ import cv2
 import csv
 import json
 from mujoco_mpc import agent as agent_lib
+from tqdm import tqdm
 
 
 class MJPC_AGENT():
@@ -124,9 +125,9 @@ class MJPC_AGENT():
             self._set_initial_state()
 
         # simulate
-        for t in range(self.T-1):
-            if t % 100 == 0:
-                print("\rt = ", t)
+        for t in tqdm(range(self.T-1)):
+            # if t % 100 == 0:
+            #     print("\rt = ", t)
 
             # set planner state
             self.agent.set_state(
@@ -205,6 +206,9 @@ class MJPC_AGENT():
 
         if save_trajectory:
             self._save_trajectories(savepath,self.states.tolist(),self.actions.tolist(),self.rewards.tolist(),self.total_reward.tolist())
+        print(self.qpos.shape[0])
+        
+        return self.qpos.shape[0]
 
     
     def set_camera_view(self, position: tuple = (0,0,0), elevation: int = -90, azimuth: int = 90, xml_cam_id: str = None):
