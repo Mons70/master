@@ -11,11 +11,11 @@ def main(args):
 
     for i in range(0, num_demos):
         print('#' * terminal_width)
-        demo_string = f'Calculating demo {i} out of {num_demos}...'
+        demo_string = f'Calculating demo {i+1} out of {num_demos}...'
         print(f'{demo_string}')
         print('-' * len(demo_string))
         # Initialize mpc agent
-        mpc_agent = MJPC_AGENT(task_path="/home/mons/dev/private/master/mujoco_mpc/build/mjpc/tasks/quadruped/task_flat.xml", task_id="Quadruped Flat", 
+        mpc_agent = MJPC_AGENT(task_path="/home/mons/dev/private/master/mujoco_mpc/build/mjpc/tasks/quadruped/task_hill.xml", task_id="Quadruped Hill", 
                             time_horizon= T, render=True)
 
         # Get the task parameters, e.g. goal
@@ -24,7 +24,7 @@ def main(args):
         mpc_agent.set_camera_view(xml_cam_id="robot_cam")
 
         # Run MPC planner, return qpos observation size, qvel is the remaining half of a state
-        obs_size = mpc_agent.run_planner(random_initial_state=False, save_trajectory=True, savepath = f'./saved_trajectories/ep_{i}.json')
+        obs_size = mpc_agent.run_planner(random_initial_state=False, random_goal_state=True, save_trajectory=True, savepath = f'./saved_trajectories/ep_{i}.json')
         print('#' * terminal_width)
         # # plot states, don't show
         # mpc_agent.plot_states()

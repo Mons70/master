@@ -8,6 +8,9 @@ import cv2
 import csv
 import json
 from mujoco_mpc import agent as agent_lib
+from mujoco_mpc import mjpc_parameters
+from mujoco_mpc.proto import agent_pb2
+from typing import Mapping
 from tqdm import tqdm
 
 
@@ -22,6 +25,9 @@ class MJPC_AGENT():
         # data
         self.data = mujoco.MjData(self.model)
 
+        # agent
+        self.agent = agent_lib.Agent(task_id=task_id, model=self.model)
+        
         # renderer
         if render:
             # model.cam(data.cam("robot_cam").id).fovy[0] = 20
@@ -31,12 +37,12 @@ class MJPC_AGENT():
         else:
             self.renderer = None
 
-        # agent
-        self.agent = agent_lib.Agent(task_id=task_id, model=self.model)
-
         # Time horizon
         self.T = time_horizon
+        self.time_stop = None
         self.camera = None
+        
+        print("Timestep:", self.model.opt.timestep)
 
     def _render_video(self, frames, framerate, playback_speed):
         # Define the codec and create VideoWriter object
@@ -78,8 +84,11 @@ class MJPC_AGENT():
         self.qvel[:, 0] = self.data.qvel
         self.time[0] = self.data.time
 
+        print("Initital position: " + str(self.qpos[:,0]))
+        print("Initial velocity: " + str(self.qvel[:,0]))
 
-    def _set_random_initial_state(self):
+
+    def _set_random_initial_state(self, body: str):
         # rollout
         mujoco.mj_resetData(self.model, self.data)
         for i in range(len(self.data.qpos)):
@@ -92,6 +101,17 @@ class MJPC_AGENT():
         
         print("Initital position: " + str(self.qpos[:,0]))
         print("Initial velocity: " + str(self.qvel[:,0]))
+    
+    def _set_random_goal_state(self):
+        available_states = self.agent.get_all_modes()
+        rand_idx = np.random.randint(1,len(available_states)-1)
+        random_state = available_states[rand_idx]
+        self.agent.set_mode(random_state)
+        self.goal_pos = self.agent.model.key_mpos[rand_idx -1]
+        self.goal_quat = self.agent.model.key_mquat[rand_idx -1]
+        
+        self.data.mocap_pos = self.goal_pos
+        self.data.mocap_quat = self.goal_quat
 
 
     def _init_agent_cost_terms(self):
@@ -103,7 +123,7 @@ class MJPC_AGENT():
         self.cost_terms = np.zeros((len(self.agent.get_cost_term_values()), self.T))
 
 
-    def run_planner(self, random_initial_state:bool = False, save_trajectory:bool = False, savepath:str = "../saved_trajectories/trajectories.json"):
+    def run_planner(self, random_initial_state:bool = False, random_goal_state:bool = False, save_trajectory:bool = False, savepath:str = "../saved_trajectories/trajectory.json"):
         #time horizon
 
         #trajectories
@@ -120,9 +140,13 @@ class MJPC_AGENT():
             frames = []
 
         if random_initial_state:
-            self._set_random_initial_state()
+            self._set_random_initial_state("Quadruped Terrain")
         else:
             self._set_initial_state()
+
+        if random_goal_state:
+            self._set_random_goal_state()
+            print("Goal state:", self.agent.get_mode())
 
         # simulate
         for t in tqdm(range(self.T-1)):
@@ -170,8 +194,8 @@ class MJPC_AGENT():
                 else:
                     self.renderer.update_scene(self.data, camera=self.camera)
                     frames.append(self.renderer.render())
-
-            if self.cost_total[0][t] < 0.005:
+            
+            if self.cost_total[0][t] < 0.25:
                 self.qpos = self.qpos[:, :t+1]
                 self.qvel = self.qvel[:, :t+1]
                 self.ctrl = self.ctrl[:, :t+1]

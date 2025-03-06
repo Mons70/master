@@ -54,7 +54,7 @@
             "rewards",
             "dones"
         ],
-        "goal_mode": null,
+        "goal_mode": "last",
         "cuda": true,
         "batch_size": 256,
         "num_epochs": 200,
@@ -119,14 +119,18 @@
         "modalities": {
             "obs": {
                 "low_dim": [
-                    "flat"
+                    "pos",
+                    "vel"
                 ],
                 "rgb": [],
                 "depth": [],
                 "scan": []
             },
             "goal": {
-                "low_dim": [],
+                "low_dim": [
+                    "pos",
+                    "vel"
+                ],
                 "rgb": [],
                 "depth": [],
                 "scan": []
