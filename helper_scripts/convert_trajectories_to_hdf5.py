@@ -10,6 +10,15 @@ from array import array
 import numpy as np
 from glob import glob
 from tqdm import tqdm
+from sklearn import preprocessing
+
+def normalize_to_minus_one_one(arr):
+    X = np.array(arr)
+    # arr_min, arr_max = arr.min(), arr.max()
+    # print(arr_min)
+    # print(arr_max)
+    # return ((2*(arr - arr_min))/(arr_max - arr_min)) - 1
+    return np.round(preprocessing.minmax_scale(arr,feature_range=(-1,1),axis=0),2)
 
 def convert_csv_hdf5(directory, output_dir, env_info):
     """
@@ -80,14 +89,18 @@ def convert_csv_hdf5(directory, output_dir, env_info):
         states = np.array(data_dictionary['states'])
 
         actions = np.array([ai['actions'] for ai in data_dictionary['actions']])
+        print(actions.shape)
+        actions = normalize_to_minus_one_one(actions)
+        print(actions.shape)
+        # print(actions[10])
 
         rewards = np.array(data_dictionary['rewards'])
         total_reward = np.array(data_dictionary['total_reward'])
 
         assert len(states) == len(actions)
 
-        print(states.shape)
-        print(actions.shape)
+        # print(states.shape)
+        # print(actions.shape)
 
         num_eps += 1
         ep_data_grp = data_grp.create_group('demo_{}'.format(num_eps))
@@ -113,7 +126,7 @@ if __name__ == "__main__":
     # Create argument configuration
     config = {
         "env_name": "Push",
-        "robots": "Cartpole",
+        "robots": "Tiago",
         "controller_configs": None,
     }
 
