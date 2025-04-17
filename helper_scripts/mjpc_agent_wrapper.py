@@ -56,12 +56,13 @@ class MJPC_AGENT():
 
         out.release()
 
-    def _save_trajectories(self, filename,states, actions, rewards,total_reward):
+    def _save_trajectories(self, filename,states, actions, rewards, total_reward, goal_state):
         data = {}
         data['states'] = states
         data['actions'] = actions
         data['rewards'] = rewards
         data['total_reward'] = total_reward
+        data['goal_state'] = goal_state
         with open(filename, 'w') as f:
             json.dump(data, f)
 
@@ -113,6 +114,15 @@ class MJPC_AGENT():
         self.data.mocap_pos = self.goal_pos
         self.data.mocap_quat = self.goal_quat
 
+    def _set_goal_state(self, goal_state):
+        available_states = self.agent.get_all_modes()
+        self.agent.set_mode(available_states[goal_state])
+
+        goal_pos = self.agent.model.key_mpos[goal_state -1]
+        goal_quat = self.agent.model.key_mquat[goal_state -1]
+        
+        self.data.mocap_pos = goal_pos
+        self.data.mocap_quat = goal_quat
 
     def _init_agent_cost_terms(self):
         #Set number of timesteps T
@@ -123,7 +133,7 @@ class MJPC_AGENT():
         self.cost_terms = np.zeros((len(self.agent.get_cost_term_values()), self.T))
 
 
-    def run_planner(self, random_initial_state:bool = False, random_goal_state:bool = False, save_trajectory:bool = False, savepath:str = "../saved_trajectories/trajectory.json"):
+    def run_planner(self, random_initial_state:bool = False, goal_state = None, save_trajectory:bool = False, savepath:str = "../saved_trajectories/trajectory.json"):
         #time horizon
 
         #trajectories
@@ -144,12 +154,20 @@ class MJPC_AGENT():
         else:
             self._set_initial_state()
 
-        if random_goal_state:
+        if goal_state != None:
+            self._set_goal_state(goal_state)
+        else:
             self._set_random_goal_state()
-            print("Goal state:", self.agent.get_mode())
+        
+        if self.agent.get_mode() == 'Loop':
+            self.goal_state = 'Loop'
+        else:
+            self.goal_state = int("".join([x if x.isdigit() else "" for x in list(self.agent.get_mode())]))
 
+        print("Goal state:", self.goal_state)
+        
         # simulate
-        for t in tqdm(range(self.T-1)):
+        for t in tqdm(range(self.T)):
             # if t % 100 == 0:
             #     print("\rt = ", t)
 
@@ -183,9 +201,10 @@ class MJPC_AGENT():
             mujoco.mj_step(self.model, self.data)
 
             # cache
-            self.qpos[:, t + 1] = self.data.qpos
-            self.qvel[:, t + 1] = self.data.qvel
-            self.time[t + 1] = self.data.time
+            if t < self.T-1:
+                self.qpos[:, t + 1] = self.data.qpos
+                self.qvel[:, t + 1] = self.data.qvel
+                self.time[t + 1] = self.data.time
 
             # If a renderer was specified, render and save frames
             if render:
@@ -225,11 +244,13 @@ class MJPC_AGENT():
 
         print("Actions shape: " + str(self.actions.shape))
 
-        self.rewards = self.cost_terms * -1
-        self.total_reward = self.cost_total * -1
+        self.rewards = 1/(1 + self.cost_terms)
+        self.total_reward = 1/(1 + self.cost_total)
+        # self.total_reward = self.cost_total * -1
+        self.total_reward[0][-1] += 1
 
         if save_trajectory:
-            self._save_trajectories(savepath,self.states.tolist(),self.actions.tolist(),self.rewards.tolist(),self.total_reward.tolist())
+            self._save_trajectories(savepath,self.states.tolist(),self.actions.tolist(),self.rewards.tolist(),self.total_reward.tolist(), self.goal_state)
         print(self.qpos.shape[0])
         
         return self.qpos.shape[0]

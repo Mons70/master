@@ -1,7 +1,7 @@
 {
   "algo_name": "td3_bc",
   "experiment": {
-    "name": "td3_bc_quadruped_hill_hyper_search",
+    "name": "td3_bc_quadruped_hill_tuning",
     "validate": true,
     "logging": {
       "terminal_output_to_txt": true,
@@ -18,7 +18,7 @@
       "on_best_rollout_return": false,
       "on_best_rollout_success_rate": false
     },
-    "epoch_every_n_steps":100,
+    "epoch_every_n_steps":30,
     "validation_epoch_every_n_steps": 10,
     "env": null,
     "additional_envs": null,
@@ -36,7 +36,7 @@
     }
   },
   "train": {
-    "data": "/home/mons/dev/private/master/saved_trajectories/1000_quads/demo/low_dim.hdf5",
+    "data": "/home/mons/dev/private/master/saved_trajectories/1000_quads_normalized_rewards/1000_quads/demo/low_dim.hdf5",
     "output_dir": "../td3_bc_trained_models",
     "num_data_workers": 0,
     "hdf5_cache_mode": "all",
@@ -52,8 +52,8 @@
     "dataset_keys": ["actions", "rewards", "dones"],
     "goal_mode": "last",
     "cuda": true,
-    "batch_size": 2048,
-    "num_epochs": 1000,
+    "batch_size": 8192,
+    "num_epochs": 2000,
     "seed": 1
   },
   "algo": {
@@ -96,13 +96,13 @@
         "n": 2,
         "weight": 1.0
       },
-      "layer_dims": [256, 256]
+      "layer_dims": [512, 512]
     },
     "actor": {
       "update_freq": 2,
       "noise_std": 0.2,
       "noise_clip": 0.5,
-      "layer_dims": [256, 256]
+      "layer_dims": [512, 512]
     }
   },
   "observation": {
