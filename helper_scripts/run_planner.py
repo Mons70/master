@@ -2,14 +2,13 @@ import sys
 import os
 import argparse
 from mjpc_agent_wrapper import *
-from tqdm import tqdm
 
 def main(args):
     T = args.max_demo_duration
     num_demos = args.num_demonstrations
     terminal_width = os.get_terminal_size().columns 
 
-    for i in range(0, num_demos):
+    for i in range(5000, 5000 + num_demos):
         print('#' * terminal_width)
         demo_string = f'Calculating demo {i+1} out of {num_demos}...'
         print(f'{demo_string}')
@@ -32,6 +31,8 @@ def main(args):
         # mpc_agent.plot_actions()
         # # plot costs
         # mpc_agent.plot_rewards(show=True)
+    # Exit using obs size as exit code to return it for use in dataset generation
+    print(obs_size)
     sys.exit(obs_size)
 
 if __name__ == "__main__":

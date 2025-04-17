@@ -5,10 +5,11 @@ import numpy as np
 import pathlib
 import cv2
 import os
-from glob import glob
 import json
+import argparse
 import robomimic.utils.file_utils as FileUtils
 import robomimic.utils.torch_utils as TorchUtils
+from glob import glob
 from sklearn import preprocessing
 from mujoco_mpc import agent as agent_lib
 
@@ -343,7 +344,7 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
 #    return qpos, qvel, ctrl, cost_terms, cost_total
     return states, actions, rewards, total_reward
 
-def main():
+def main(policy_path):
     T = 1000
     # Initialize model, agent, data and renderer for simulation
     model, agent, data, renderer = init_model_task("/home/mons/dev/private/master/mujoco_mpc/build/mjpc/tasks/quadruped/task_hill.xml", "Quadruped Hill", render=True, render_resolution=(480, 640))
@@ -359,8 +360,8 @@ def main():
     # Run planner
     #qpos, qvel, ctrl, cost_terms, cost_total = run_planner(model, agent, data, renderer, T, True, False, savepath = f'./saved_trajectories/trajectories_model_{i}.csv')
 
-    states, actions, rewards, total_reward = run_policy(model, agent, data, renderer, T, random_initial_state=False, goal_state=2, camera_id="robot_cam", 
-                                                        policy_path="/home/mons/dev/private/master/robomimic/robomimic/../td3_bc_trained_models/td3_bc_quadruped_hill_hyper_search_batch_1024_actor_lr_0.0003_critic_lr_0.0003_actor_dims_512_512_512_critic_dims_512_512_512_steps_pr_epoch_500_steps_pr_val_epoch_50/20250327103207/models/model_epoch_1000.pth")
+    states, actions, rewards, total_reward = run_policy(model, agent, data, renderer, T, random_initial_state=False, goal_state=3, camera_id="robot_cam", 
+                                                        policy_path=str(policy_path))
     print("STAAAAAAAAAAAAAAAAAAAAAAATES")
     print(states[-10:])
     # plot states
@@ -370,4 +371,51 @@ def main():
     # plot costs
     # plot_rewards(agent, rewards, total_reward, len(total_reward[0]), show = True)
 
-main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument(
+        "--policy_path",
+        help="Path to the policy checkpoint .pth file",
+    )
+    args = parser.parse_args()
+    main(args.policy_path)
+
+# NOTE Currently best:
+# td3_bc_quadruped_hill_hyper_search_batch_1024_actor_lr_0.0007_critic_lr_0.0007_actor_dims_1024_1024_critic_dims_1024_1024_steps_pr_epoch_2500_steps_pr_val_epoch_250 - 1000 epochs
+# td3_bc_quadruped_hill_hyper_search_batch_1024_actor_lr_0.0007_critic_lr_0.0007_actor_dims_1024_1024_critic_dims_1024_1024_steps_pr_epoch_500_steps_pr_val_epoch_50 - 1000 epochs
+# td3_bc_quadruped_hill_hyper_search_batch_1024_actor_lr_0.0007_critic_lr_0.0007_actor_dims_1024_1024_critic_dims_1024_1024_steps_pr_epoch_1000_steps_pr_val_epoch_100 - 1000 epochs
+# td3_bc_quadruped_hill_hyper_search_batch_1024_actor_lr_0.0007_critic_lr_0.0007_actor_dims_1024_1024_critic_dims_1024_1024_steps_pr_epoch_100_steps_pr_val_epoch_10 - 1000 epochs
+
+# TODO:
+# BIGGER BATCH SIZE: pong typically performs well with 1000 in batch size (yikes) according to this: https://andyljones.com/posts/rl-debugging.html
+# Retry with 3x512 networks: singularities are more easily avoided/overcome with bigger batches
+# Learning rate shceduling
+
+# Bigger batch sizes: (Steps pr epoch is ish dataset divided by batch size, and val steps per epoch is 1/10 of that. E.g. batch 8192: steps pr epoch 30 (23x xxx samples in data set)
+#                       learning rate used: 0.0005, no learning rate scheduling, 1000 epochs.)
+# 2048:
+# 512x3: Moves, more chaotic movements, but able to cover some space, flings itself to cover more space sometimes
+# 1024x2: Similar to 512x3, but more "dead spider" legs, arguably worse than 512x3
+# 4096:
+# 512x3:  Does some movements for the first moments, then stuck in singularity/doesn't move
+# 1024x2: Pretty good! tries to walk, tips over, tries to walk when on its back, doesn't cover much ground: Check tensorboard, think more/further training can be done here
+
+# 8192:
+# 512x3: Best yet? Similar to 4096, 1024x2, but "stronger" movements, first smooth Train/critic/q_target curve, both actor and critic validation loss decreasing with 
+#        training, very spiky loss curves still though, especially training loss
+# 1024x2: Singularity :( get's stuck/doesn't move
+
+# 12288: 
+# 512x3: Not very good, more similar to 2048, 512x3 again, little less chaotic, but less prounounced walking patterns in the legs, also lays on back 
+# 1024x2: Not very good, straigther legs than 512x3, less chaotic, but legs in wrong directions compared to each other as stuff.
+
+# MOST PROMISING SO FAR:
+# Batch 4096: 1024x2
+# Batch 8192: 512x3
+# TODO: Try further training here, more epochs, other steps_pr_epoch, learning rate, learning rate scheduling
+# INVESTIGATE singularities in 4096: 512x3 and 8192: 1024x2
+
+
+# NOTE: Smaller networks seem promising!! Double layers <= 512 tried. Will add extra reward at last obs over every trajectory in dataset now, and see if that helps.
+# ALSO try to lower learning rate, to e.g. 0.0003 as they do in the paper, this should/could help with the singularties and mega spikes in the critic loss
