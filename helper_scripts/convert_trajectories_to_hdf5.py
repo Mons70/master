@@ -125,8 +125,8 @@ if __name__ == "__main__":
 
     # Create argument configuration
     config = {
-        "env_name": "Push",
-        "robots": "Tiago",
+        "env_name": "Hill",
+        "robots": "Quadruped",
         "controller_configs": None,
     }
 
