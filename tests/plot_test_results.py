@@ -100,6 +100,8 @@ def plot_total_reward(policy_trajectories, time_horizon, show:bool = False):
             plt.show()
 
 def plot_control(policy_trajectories, time_horizon, show:bool = False):
+
+
     # ctrl trajectories are shape 12xtime_horizon
     avg_policy_ctrl = {}
     for policy in policy_trajectories.keys():
@@ -110,7 +112,7 @@ def plot_control(policy_trajectories, time_horizon, show:bool = False):
             for run in policy_trajectories[policy][goal_state]:
                 # print(run.keys())
                 controls = np.array(run['ctrl'])
-                padded_controls = np.zeros((controls.shape[0], time_horizon))
+                padded_controls = np.zeros((len(controls), time_horizon))
                 # print(controls.shape)
                 goal = run['goal_state']
                 # print(controls.shape)
@@ -118,35 +120,35 @@ def plot_control(policy_trajectories, time_horizon, show:bool = False):
                     print(len(controls[i]))
                     padded_controls[i] = np.pad(controls[i], ((0, time_horizon - len(controls[i]))), mode='constant', constant_values=np.nan)
                     # print(controls)
-                # print(controls.shape)
                 # The distances from goal per timestep for a single run is appended to list
                 run_controls.append(padded_controls)
-            # print(len(run_controls))
+        
+            print(np.array(run_controls).shape)
 
             # The mean distance from a specific goal across all the runs per timestep is added to the dictionary
-            print(run_controls)
-            for i in range(len(run_controls)):
-                avg_policy_ctrl[policy][goal] = np.mean(run_controls, axis=0)
-    
-    # print(avg_policy_ctrl)
+            print(len(run_controls))
+            avg_policy_ctrl[policy][goal] = np.mean(run_controls, axis=0)
+
 
     time = np.arange(0, time_horizon)
-    # num_goals = len(sorted_average_reward_dict.keys()
-    colors = cc.glasbey_light[:len(avg_policy_ctrl[list(avg_policy_ctrl.keys())[0]][1])]
-    labels = colors
 
-    for goal in avg_policy_ctrl['MPC'].keys():
+    colors = cc.glasbey_light[:len(avg_policy_ctrl[list(avg_policy_ctrl.keys())[0]][1])]
+    labels = ["FR_hip_joint","FR_thigh_joint","FR_calf_joint","FL_hip_joint","FL_thigh_joint","FL_calf_joint","RR_hip_joint","RR_thigh_joint","RR_calf_joint","RL_hip_joint","RL_thigh_joint","RL_calf_joint"]
+    
+    for goal in avg_policy_ctrl[list(avg_policy_ctrl.keys())[0]].keys():
         fig, axs = plt.subplots(3,1)
         for i, policy in enumerate(avg_policy_ctrl.keys()):
             print(goal)
             axs[i].set_title(f'Control signals for {policy}, Goal task {goal}')
-            for signal in range(avg_policy_ctrl[policy][goal].shape[0]):
-                axs[i].plot(time[:], avg_policy_ctrl[policy][goal][i], label=labels[signal])
+            for signal in range(len(avg_policy_ctrl[policy][goal])):
+                print(signal)
+                print(avg_policy_ctrl[policy][goal][signal])
+                axs[i].plot(time[:], avg_policy_ctrl[policy][goal][signal], label=labels[signal])
 
-            axs[i].legend()
             axs[i].set_xlabel("Timesteps")
             axs[i].set_ylabel("Signal strength")
 
+        fig.legend()
         if show:
             plt.show()
 
