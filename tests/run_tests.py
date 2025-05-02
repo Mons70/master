@@ -420,7 +420,7 @@ def main(rl_policy_path: str, bc_policy_path: str):
     T = 100
     policies = ['mpc', bc_policy_path, rl_policy_path]
     policy_names = ['MPC', 'Behavioral cloning', 'Offline RL']
-    goals = [1] #, 8, 11]#, 14, 17]
+    goals = [1,2] #, 8, 11]#, 14, 17]
     runs_pr_goal = 2
     policy_trajectories = {}
     for current_policy, policy_name in zip(policies, policy_names):
