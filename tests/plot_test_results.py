@@ -99,6 +99,57 @@ def plot_total_reward(policy_trajectories, time_horizon, show:bool = False):
         if show:
             plt.show()
 
+def plot_control(policy_trajectories, time_horizon, show:bool = False):
+    # ctrl trajectories are shape 12xtime_horizon
+    avg_policy_ctrl = {}
+    for policy in policy_trajectories.keys():
+        avg_policy_ctrl[policy] = {}
+        #  For the current policy iterate through all goal tasks, and find mean distance from goal for all the runs from each goal task
+        for goal_state in policy_trajectories[policy].keys():
+            run_controls = []
+            for run in policy_trajectories[policy][goal_state]:
+                # print(run.keys())
+                controls = np.array(run['ctrl'])
+                padded_controls = np.zeros((controls.shape[0], time_horizon))
+                # print(controls.shape)
+                goal = run['goal_state']
+                # print(controls.shape)
+                for i in range(len(controls)):
+                    print(len(controls[i]))
+                    padded_controls[i] = np.pad(controls[i], ((0, time_horizon - len(controls[i]))), mode='constant', constant_values=np.nan)
+                    # print(controls)
+                # print(controls.shape)
+                # The distances from goal per timestep for a single run is appended to list
+                run_controls.append(padded_controls)
+            # print(len(run_controls))
+
+            # The mean distance from a specific goal across all the runs per timestep is added to the dictionary
+            print(run_controls)
+            for i in range(len(run_controls)):
+                avg_policy_ctrl[policy][goal] = np.mean(run_controls, axis=0)
+    
+    # print(avg_policy_ctrl)
+
+    time = np.arange(0, time_horizon)
+    # num_goals = len(sorted_average_reward_dict.keys()
+    colors = cc.glasbey_light[:len(avg_policy_ctrl[list(avg_policy_ctrl.keys())[0]][1])]
+    labels = colors
+
+    for goal in avg_policy_ctrl['MPC'].keys():
+        fig, axs = plt.subplots(3,1)
+        for i, policy in enumerate(avg_policy_ctrl.keys()):
+            print(goal)
+            axs[i].set_title(f'Control signals for {policy}, Goal task {goal}')
+            for signal in range(avg_policy_ctrl[policy][goal].shape[0]):
+                axs[i].plot(time[:], avg_policy_ctrl[policy][goal][i], label=labels[signal])
+
+            axs[i].legend()
+            axs[i].set_xlabel("Timesteps")
+            axs[i].set_ylabel("Signal strength")
+
+        if show:
+            plt.show()
+
 def plot_body_height(policy_trajectories, time_horizon, show:bool = False):
     avg_policy_body_height = {}
     for policy in policy_trajectories.keys():
@@ -177,7 +228,7 @@ def plot_mean_distance_to_goal(policy_trajectories, time_horizon, show:bool = Fa
         plt.legend()
         plt.xlabel("Timesteps")
         plt.ylabel("Distance(m)")
-        plt.title("Mean distance away goal")
+        plt.title("Mean distance from goal")
         if show:
             plt.show()
 
@@ -185,9 +236,12 @@ if __name__ == "__main__":
 
     policy_trajectories = fetch_data('/home/mons/dev/private/master/tests/test_data.json')
 
-    print(len(policy_trajectories['Behavioral cloning']['1'][0]['states']))
+    print(len(policy_trajectories['MPC']['1'][0]['ctrl'][0]))
     # Plot reward (average pr timestep)
-    plot_total_reward(policy_trajectories, 599, True)
+    # plot_total_reward(policy_trajectories, 599, True)
+
+    #plot control signals ( pr timestep)
+    plot_control(policy_trajectories, 200, True)
 
     # Plot body height (average pr timestep)
     # plot_body_height(policy_trajectories, 600, True)

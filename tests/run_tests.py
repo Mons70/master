@@ -373,7 +373,7 @@ class MUJOCO_POLICY_AGENT():
         #     self._save_trajectories(savepath,self.states.tolist(),self.actions.tolist(),self.rewards.tolist(),self.total_reward.tolist(), self.goal_state)
         # print(self.qpos.shape[0])
         
-        return self.states.tolist(), self.actions.tolist(), self.rewards.tolist(), self.total_reward.tolist(), self.body_height, self.goal_state
+        return self.states.tolist(), self.actions.tolist(), self.rewards.tolist(), self.total_reward.tolist(), self.ctrl.tolist(), self.body_height, self.goal_state
     
 def plot_states(states, time_horizon, show:bool = False):
     #State shape = timesteps x dim(state space)
@@ -417,11 +417,11 @@ def plot_rewards(total_reward, time_horizon, show:bool = False):
 
 
 def main(rl_policy_path: str, bc_policy_path: str):
-    T = 600
+    T = 100
     policies = ['mpc', bc_policy_path, rl_policy_path]
     policy_names = ['MPC', 'Behavioral cloning', 'Offline RL']
-    goals = [1, 8, 11]#, 14, 17]
-    runs_pr_goal = 5
+    goals = [1] #, 8, 11]#, 14, 17]
+    runs_pr_goal = 2
     policy_trajectories = {}
     for current_policy, policy_name in zip(policies, policy_names):
         if current_policy != "mpc":
@@ -450,10 +450,10 @@ def main(rl_policy_path: str, bc_policy_path: str):
                 # Run planner
                 #qpos, qvel, ctrl, cost_terms, cost_total = run_planner(model, agent, data, renderer, T, True, False, savepath = f'./saved_trajectories/trajectories_model_{i}.csv')
 
-                states, actions, rewards, total_reward, body_height, goal_state = mujoco_agent.run_policy(random_initial_state=False, goal_state=goal, camera_id="robot_cam", 
+                states, actions, rewards, total_reward, ctrl, body_height, goal_state = mujoco_agent.run_policy(random_initial_state=False, goal_state=goal, camera_id="robot_cam", 
                                                                                                         policy_path=str(current_policy))
                 goal_trajectories[goal].append({'states': states, 'actions': actions, 'rewards': rewards, 'total_reward': total_reward,
-                                                'body_height': body_height, 'goal_state': goal_state})
+                                                'ctrl': ctrl, 'body_height': body_height, 'goal_state': goal_state})
         policy_trajectories[policy_name] = goal_trajectories
     
     print(policy_trajectories)
