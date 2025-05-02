@@ -23,7 +23,7 @@ def main(args):
         mpc_agent.set_camera_view(xml_cam_id="robot_cam")
 
         # Run MPC planner, return qpos observation size, qvel is the remaining half of a state
-        obs_size = mpc_agent.run_planner(random_initial_state=False, goal_state=None, save_trajectory=True, savepath = f'./saved_trajectories/ep_{i}.json')
+        obs_size = mpc_agent.run_planner(random_initial_state=False, goal_state=6, save_trajectory=True, savepath = f'./saved_trajectories/ep_{i}.json')
         print('#' * terminal_width)
         # # plot states, don't show
         # mpc_agent.plot_states()

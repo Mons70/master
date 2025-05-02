@@ -13,46 +13,6 @@ from glob import glob
 from sklearn import preprocessing
 from mujoco_mpc import agent as agent_lib
 
-def plot_states(states, time_horizon, show:bool = False):
-    #State shape = timesteps x dim(state space)
-    fig = plt.figure()
-    time = np.arange(0, time_horizon)
-    states[:,2] = states[:,2] % 2*np.pi
-    plt.plot(time, states)
-    plt.legend()
-    plt.xlabel("Time (s)")
-    plt.ylabel("State values")
-    if show:
-       plt.show()
-
-
-def plot_actions(actions, time_horizon, show:bool = False):
-    fig = plt.figure()
-    time = np.arange(0, time_horizon)
-    actions_list = []
-    for dict in actions:
-        actions_list.append(*dict.values())
-    print(actions_list)
-    plt.plot(time, actions_list)
-    plt.legend()
-    plt.xlabel("Time (s)")
-    plt.ylabel("Control")
-    if show:
-       plt.show()
-
-def plot_rewards(agent, rewards, total_reward, time_horizon, show:bool = False):
-    fig = plt.figure()
-    time = np.arange(0, time_horizon)
-    for i, c in enumerate(agent.get_cost_term_values().items()):
-        plt.plot(time[:], rewards[i, :], label=c[0])
-
-    plt.plot(time[:], total_reward[0,:], label="Total (weighted)", color="black")
-    plt.legend()
-    plt.xlabel("Time (s)")
-    plt.ylabel("Rewards")
-    if show:
-        plt.show()
-
 def render_video(frames, framerate, playback_speed, name):
     # Define the codec and create VideoWriter object
     height, width, _ = frames[0].shape
@@ -338,8 +298,8 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
 
     # print(actions.shape)
 
-    rewards = cost_terms * -1
-    total_reward = cost_total * -1
+    rewards = 1/(1+cost_terms)
+    total_reward = 1/(1+cost_total)
 
 #    return qpos, qvel, ctrl, cost_terms, cost_total
     return states, actions, rewards, total_reward
@@ -365,11 +325,11 @@ def main(policy_path):
     print("STAAAAAAAAAAAAAAAAAAAAAAATES")
     print(states[-10:])
     # plot states
-    plot_states(states, len(states))
+    # plot_states(states, len(states))
     # plot actions
-    plot_actions(actions, len(actions))
+    # plot_actions(actions, len(actions))
     # plot costs
-    # plot_rewards(agent, rewards, total_reward, len(total_reward[0]), show = True)
+    plot_rewards(total_reward, len(total_reward[0]), show = True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
