@@ -226,7 +226,7 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
 
 
     # simulate
-    for t in range(T-1):
+    for t in range(T):
         if t % 100 == 0:
             print("\rt = ", t)
 
@@ -259,9 +259,10 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
         mujoco.mj_step(model, data)
 
         # cache
-        qpos[:, t + 1] = data.qpos
-        qvel[:, t + 1] = data.qvel
-        time[t + 1] = data.time
+        if t < T-1:
+            qpos[:, t + 1] = data.qpos
+            qvel[:, t + 1] = data.qvel
+            time[t + 1] = data.time
 
         # If a renderer was specified, render and save frames
         if render:

@@ -279,7 +279,7 @@ class MUJOCO_POLICY_AGENT():
         self.body_height = []
         
         # simulate
-        for t in tqdm(range(self.T-1)):
+        for t in tqdm(range(self.T)):
             # if t % 100 == 0:
             #     print("\rt = ", t)
 
@@ -323,9 +323,10 @@ class MUJOCO_POLICY_AGENT():
             mujoco.mj_step(self.model, self.data)
 
             # cache
-            self.qpos[:, t + 1] = self.data.qpos
-            self.qvel[:, t + 1] = self.data.qvel
-            self.time[t + 1] = self.data.time
+            if t < self.T-1:
+                self.qpos[:, t + 1] = self.data.qpos
+                self.qvel[:, t + 1] = self.data.qvel
+                self.time[t + 1] = self.data.time
 
             # If a renderer was specified, render and save frames
             if render:
