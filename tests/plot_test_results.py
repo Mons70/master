@@ -58,7 +58,7 @@ def get_goal_pos(goal):
 
     return keyframes[goal]
 
-def plot_total_reward(policy_trajectories, time_horizon, show:bool = False):
+def plot_total_reward(policy_trajectories, time_horizon, show:bool = False, save_path=None):
     avg_policy_reward = {}
     for policy in policy_trajectories.keys():
         avg_policy_reward[policy] = {}
@@ -93,10 +93,12 @@ def plot_total_reward(policy_trajectories, time_horizon, show:bool = False):
         plt.xlabel("Timesteps")
         plt.ylabel("Total reward")
         plt.title(f'Average Total reward for Goal Task {goal}', weight='bold')
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, f'avg_test_reward_goal_{goal}.pgf'))
         if show:
             plt.show()
 
-def plot_control(policy_trajectories, time_horizon, show:bool = False):
+def plot_control(policy_trajectories, time_horizon, show:bool = False, save_path=None):
 
     # ctrl trajectories are shape 12xtime_horizon
     avg_policy_ctrl = {}
@@ -134,10 +136,12 @@ def plot_control(policy_trajectories, time_horizon, show:bool = False):
         fig.tight_layout(rect=[0, 0, 0.92, 1], h_pad=-2)
         fig.legend(labels=labels, loc='upper right', bbox_to_anchor=(0.99, 0.93))
         fig.suptitle(f'Control signals for Goal Task {goal}', weight='bold')
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, f'avg_test_control_goal_{goal}.pgf'))
         if show:
             plt.show()
 
-def plot_body_height(policy_trajectories, time_horizon, show:bool = False):
+def plot_body_height(policy_trajectories, time_horizon, show:bool = False, save_path=None):
     avg_policy_body_height = {}
     for policy in policy_trajectories.keys():
         avg_policy_body_height[policy] = {}
@@ -183,10 +187,12 @@ def plot_body_height(policy_trajectories, time_horizon, show:bool = False):
         plt.hlines(0,0, time_horizon, colors='black', linestyles='solid', lw=1)
         plt.hlines(0.25,0, time_horizon, colors='black', linestyles='dashed')
         plt.title(f'Averge Body Height above Feet for Goal Task {goal}', weight='bold')
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, f'avg_test_body_height_goal_{goal}.pgf'))
         if show:
             plt.show()
 
-def plot_mean_distance_to_goal(policy_trajectories, time_horizon, show:bool = False):
+def plot_mean_distance_to_goal(policy_trajectories, time_horizon, show:bool = False, save_path=None):
     avg_policy_distance = {}
     for policy in policy_trajectories.keys():
         avg_policy_distance[policy] = {}
@@ -218,10 +224,12 @@ def plot_mean_distance_to_goal(policy_trajectories, time_horizon, show:bool = Fa
         plt.xlabel("Timesteps")
         plt.ylabel("Distance(m)")
         plt.title(f'Mean Distance from Goal for Goal Task {goal}', weight='bold')
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, f'avg_test_distance_goal_{goal}.pgf'))
         if show:
             plt.show()
 
-def plot_avg_trajectory_length(policy_trajectories, time_horizon, show:bool = False):
+def plot_avg_trajectory_length(policy_trajectories, time_horizon, show:bool = False, save_path=None):
     avg_policy_traj_length = {}
     for policy in policy_trajectories.keys():
         avg_policy_traj_length[policy] = {}
@@ -249,24 +257,38 @@ def plot_avg_trajectory_length(policy_trajectories, time_horizon, show:bool = Fa
         plt.xticks([i+1 for i in range(len(avg_policy_traj_length.keys()))], list(avg_policy_traj_length.keys()))
         plt.ylabel("Length(timesteps)")
         plt.title(f"Averge Trajectory Length for Goal Task {goal}", weight='bold')
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, f'avg_test_trajectory_len_goal_{goal}.pgf'))
         if show:
             plt.show()
 
 if __name__ == "__main__":
 
-    policy_trajectories = fetch_data('/home/mons/dev/private/master/tests/test_data.json')
+    policy_trajectories = fetch_data('/home/mons/dev/private/master/tests/test_data_undisturbed.json')
+
+    matplotlib.use('pgf')
+    matplotlib.rcParams.update(
+        {
+            'pgf.texsystem': 'pdflatex',
+            'font.family': 'serif',
+            'text.usetex': True,
+            'pgf.rcfonts': False,
+        }
+    )
+
+    save_path = '/home/mons/dev/private/thesis-paper/figures'
 
     # Plot reward (average pr timestep)
-    plot_total_reward(policy_trajectories, 100, True)
+    plot_total_reward(policy_trajectories, 600, True, save_path=save_path)
 
     #plot control signals ( pr timestep)
-    plot_control(policy_trajectories, 100, True)
+    plot_control(policy_trajectories, 600, True, save_path=save_path)
 
     # Plot body height (average pr timestep)
-    plot_body_height(policy_trajectories, 100, True)
+    plot_body_height(policy_trajectories, 600, True, save_path=save_path)
 
     # Plot distance to goal (average pr timestep)
-    plot_mean_distance_to_goal(policy_trajectories, 100, True)
+    plot_mean_distance_to_goal(policy_trajectories, 600, True, save_path=save_path)
 
     # Plot trajectory length (average pr timestep)
-    plot_avg_trajectory_length(policy_trajectories, 100, True)
+    plot_avg_trajectory_length(policy_trajectories, 600, True, save_path=save_path)
