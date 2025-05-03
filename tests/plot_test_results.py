@@ -178,8 +178,8 @@ def plot_body_height(policy_trajectories, time_horizon, show:bool = False):
 
         lines, labels = ax1.get_legend_handles_labels()
         plt.legend(lines, labels)
-        plt.xlabel("Timesteps")
-        plt.ylabel("Height(m)")
+        ax1.set_xlabel("Timesteps")
+        ax1.set_ylabel("Height(m)")
         plt.hlines(0,0, time_horizon, colors='black', linestyles='solid', lw=1)
         plt.hlines(0.25,0, time_horizon, colors='black', linestyles='dashed')
         plt.title(f'Averge Body Height above Feet for Goal Task {goal}', weight='bold')
@@ -260,13 +260,13 @@ if __name__ == "__main__":
     plot_total_reward(policy_trajectories, 100, True)
 
     #plot control signals ( pr timestep)
-    # plot_control(policy_trajectories, 100, True)
+    plot_control(policy_trajectories, 100, True)
 
     # Plot body height (average pr timestep)
-    # plot_body_height(policy_trajectories, 100, True)
+    plot_body_height(policy_trajectories, 100, True)
 
     # Plot distance to goal (average pr timestep)
-    # plot_mean_distance_to_goal(policy_trajectories, 100, True)
+    plot_mean_distance_to_goal(policy_trajectories, 100, True)
 
     # Plot trajectory length (average pr timestep)
-    # plot_avg_trajectory_length(policy_trajectories, 100, True)
+    plot_avg_trajectory_length(policy_trajectories, 100, True)
