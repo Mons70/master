@@ -209,7 +209,7 @@ class MUJOCO_POLICY_AGENT():
             self.camera.lookat = np.array(position)
 
 
-    def run_policy(self, random_initial_state:bool = False, goal_state = None, camera_id=None, policy_path:str = None, disturbtion:bool = False):
+    def run_policy(self, random_initial_state:bool = False, goal_state = None, camera_id=None, policy_path:str = None, disturbance:bool = False):
         #time horizon
         if policy_path != "mpc" and policy_path != None:
             try:
@@ -255,7 +255,7 @@ class MUJOCO_POLICY_AGENT():
             render =True
             frames = []
 
-        if disturbtion:
+        if disturbance:
             terrain_id = self.model.geom_name2id("terrain")
             self.model.geom_friction = [0.5, 0.005, 0.0001]
 
@@ -452,7 +452,7 @@ def main(rl_policy_path: str, bc_policy_path: str):
                 #qpos, qvel, ctrl, cost_terms, cost_total = run_planner(model, agent, data, renderer, T, True, False, savepath = f'./saved_trajectories/trajectories_model_{i}.csv')
 
                 states, actions, rewards, total_reward, ctrl, body_height, goal_state = mujoco_agent.run_policy(random_initial_state=False, goal_state=goal, camera_id="robot_cam", 
-                                                                                                        policy_path=str(current_policy))
+                                                                                                        policy_path=str(current_policy), disturbance=True)
                 goal_trajectories[goal].append({'states': states, 'actions': actions, 'rewards': rewards, 'total_reward': total_reward,
                                                 'ctrl': ctrl, 'body_height': body_height, 'goal_state': goal_state})
         policy_trajectories[policy_name] = goal_trajectories
