@@ -257,7 +257,7 @@ class MUJOCO_POLICY_AGENT():
 
         if disturbance:
             terrain_id = self.model.geom_name2id("terrain")
-            self.model.geom_friction = [0.5, 0.005, 0.0001]
+            self.model.geom_friction = [0.05, 0.005, 0.0001]
 
         if random_initial_state:
             self._set_random_initial_state("Quadruped Terrain")

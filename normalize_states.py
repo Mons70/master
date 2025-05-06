@@ -15,7 +15,7 @@ for filename in os.listdir(directory):
             print(file_path)
             data = json.load(file)
         
-        # Check if "states" exists and is a list
+        # Check if "states" exists and is a listgit 
         if "states" in data and isinstance(data["states"], list):
             arr = np.round(preprocessing.minmax_scale(data["states"],feature_range=(-1,1),axis=0),2) # Normalize all the state to be between -1 and 1
             data["states"] = arr.tolist()
