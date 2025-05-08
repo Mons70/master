@@ -18,8 +18,8 @@
       "on_best_rollout_return": false,
       "on_best_rollout_success_rate": false
     },
-    "epoch_every_n_steps":30,
-    "validation_epoch_every_n_steps": 10,
+    "epoch_every_n_steps":180,
+    "validation_epoch_every_n_steps": 18,
     "env": null,
     "additional_envs": null,
     "render": false,
@@ -36,7 +36,7 @@
     }
   },
   "train": {
-    "data": "/home/mons/dev/private/master/saved_trajectories/1000_quads_normalized_rewards/1000_quads/demo/low_dim.hdf5",
+    "data": "/home/mons/dev/private/master/saved_trajectories/normalized_dataset/demo/low_dim.hdf5",
     "output_dir": "../td3_bc_trained_models",
     "num_data_workers": 0,
     "hdf5_cache_mode": "all",
@@ -83,7 +83,7 @@
         "end_epoch": -1
       }
     },
-    "alpha": 2.5,
+    "alpha": 1.0,
     "discount": 0.99,
     "n_step": 1,
     "target_tau": 0.005,
@@ -108,7 +108,7 @@
   "observation": {
     "modalities": {
       "obs": {
-        "low_dim": ["pos", "vel"],
+        "low_dim": ["pos"],
         "rgb": [],
         "depth": [],
         "scan": []
