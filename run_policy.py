@@ -174,6 +174,29 @@ def set_action_scalings(actions, action_min, action_max):
     print(actions)
     return actions
 
+def get_state_scaling(directory: str):
+    ep_paths = os.path.join(directory, "ep_*.json")
+    state_min = 0.0
+    state_max = 0.0
+    for ep_file in sorted(glob(ep_paths)):
+        with open(ep_file, 'r') as f:
+            data_dictionary = json.load(f)
+        # state_values = np.array([ai['states'] for ai in data_dictionary['states']])
+        state_values = np.array(data_dictionary['states'])
+        curr_min = np.min(state_values)
+        if curr_min < state_min:
+            state_min = curr_min
+
+        curr_max = np.max(state_values)
+        if curr_max > state_max:
+            state_max = curr_max        
+
+    return state_min,state_max
+
+def set_state_scalings(states, state_min, state_max):
+    return np.round(preprocessing.minmax_scale(states,feature_range=(state_min,state_max),axis=0),2)
+
+
 
 def set_camera_view(position: tuple = (0,0,0), elevation: int = -90, azimuth: int = 90, xml_cam_id: str = None):
     # Good tracking camera view for quadruped in xml format:
@@ -209,8 +232,8 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
 
     # get max and min action values from collected data to scale policy actions back to environment corrected actions
     print("Fetching max- and min-action values for scaling ...")
-    action_min, action_max = get_action_scaling("/home/mons/dev/private/master/saved_trajectories/1000_quads")
-
+    action_min, action_max = get_action_scaling("/home/mons/dev/private/master/saved_trajectories/new_dataset")
+    state_min, state_max = get_state_scaling("/home/mons/dev/private/master/saved_trajectories/new_dataset")
 
     if camera_id == None:
         camera = None
@@ -316,6 +339,16 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
 #    return qpos, qvel, ctrl, cost_terms, cost_total
     return states, actions, rewards, total_reward
 
+def plot_rewards(total_reward, show:bool = False):
+    fig = plt.figure()
+    time = np.arange(0, len(total_reward[0]))
+
+    plt.plot(time[:], total_reward[0,:], label="Total (weighted)", color="black")
+    plt.legend()
+    plt.xlabel("Time (s)")
+    plt.ylabel("Costs")
+    plt.show()
+
 def main(policy_path):
     T = 1000
     # Initialize model, agent, data and renderer for simulation
@@ -332,7 +365,7 @@ def main(policy_path):
     # Run planner
     #qpos, qvel, ctrl, cost_terms, cost_total = run_planner(model, agent, data, renderer, T, True, False, savepath = f'./saved_trajectories/trajectories_model_{i}.csv')
 
-    states, actions, rewards, total_reward = run_policy(model, agent, data, renderer, T, random_initial_state=False, goal_state=3, camera_id="robot_cam", 
+    states, actions, rewards, total_reward = run_policy(model, agent, data, renderer, T, random_initial_state=False, goal_state=4, camera_id="robot_cam", 
                                                         policy_path=str(policy_path))
     print("STAAAAAAAAAAAAAAAAAAAAAAATES")
     print(states[-10:])
