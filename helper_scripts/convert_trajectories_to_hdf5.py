@@ -13,12 +13,7 @@ from tqdm import tqdm
 from sklearn import preprocessing
 
 def normalize_to_minus_one_one(arr):
-    X = np.array(arr)
-    # arr_min, arr_max = arr.min(), arr.max()
-    # print(arr_min)
-    # print(arr_max)
-    # return ((2*(arr - arr_min))/(arr_max - arr_min)) - 1
-    return np.round(preprocessing.minmax_scale(arr,feature_range=(-1,1),axis=0),2)
+    return np.round(preprocessing.minmax_scale(arr,feature_range=(-1,1),axis=0),8)
 
 def convert_csv_hdf5(directory, output_dir, env_info):
     """
@@ -84,6 +79,7 @@ def convert_csv_hdf5(directory, output_dir, env_info):
 
     for ep_file in sorted(glob(ep_paths)):
         with open(ep_file, 'r') as f:
+            print(ep_file)
             data_dictionary = json.load(f)
 
         states = np.array(data_dictionary['states'])

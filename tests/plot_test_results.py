@@ -284,7 +284,7 @@ def plot_avg_trajectory_length(policy_trajectories, time_horizon, show:bool = Fa
 
 if __name__ == "__main__":
 
-    policy_trajectories = fetch_data('/home/mons/dev/private/master/tests/test_data_undisturbed.json')
+    policy_trajectories = fetch_data('/home/mons/dev/private/master/tests/test_data_disturbed.json')
 
     matplotlib.use('pgf')
     matplotlib.rcParams.update(
@@ -299,16 +299,16 @@ if __name__ == "__main__":
     save_path = '/home/mons/dev/private/thesis-paper/figures'
 
     # Plot reward (average pr timestep)
-    plot_total_reward(policy_trajectories, 600, True, save_path=save_path, disturbed=False)
+    plot_total_reward(policy_trajectories, 1000, True, save_path=save_path, disturbed=True)
 
     #plot control signals ( pr timestep)
-    plot_control(policy_trajectories, 600, True, save_path=save_path, disturbed=False)
+    plot_control(policy_trajectories, 1000, True, save_path=save_path, disturbed=True)
 
     # Plot body height (average pr timestep)
-    plot_body_height(policy_trajectories, 600, True, save_path=save_path, disturbed=False)
+    plot_body_height(policy_trajectories, 1000, True, save_path=save_path, disturbed=True)
 
     # Plot distance to goal (average pr timestep)
-    plot_mean_distance_to_goal(policy_trajectories, 600, True, save_path=save_path, disturbed=False)
+    plot_mean_distance_to_goal(policy_trajectories, 1000, True, save_path=save_path, disturbed=True)
 
     # Plot trajectory length (average pr timestep)
-    plot_avg_trajectory_length(policy_trajectories, 600, True, save_path=save_path, disturbed=False)
+    plot_avg_trajectory_length(policy_trajectories, 1000, True, save_path=save_path, disturbed=True)

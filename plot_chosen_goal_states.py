@@ -50,8 +50,8 @@ keyframes = {
     }
 
 # Extract coordinates
-goal_states = ['home',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-# goal_states = [1,2,8,11,14,17]
+# goal_states = ['home',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+goal_states = [1,4,8,11,14,17]
 goal_coords = [keyframes.get(key) for key in goal_states]
 # new_x, new_y = zip(*new_goals)
 
@@ -81,7 +81,7 @@ y = np.linspace(ymin, ymax, height + 1)
 fig, ax = plt.subplots()
 
 # Plot background with grayscale image
-# ax.pcolormesh(x, y, np.flipud(image), cmap='gray', shading='auto')
+ax.pcolormesh(x, y, np.flipud(image), cmap='gray', shading='auto')
 # plt.figure()
 colors = cc.glasbey_light[:len(goal_states)]
 for i,(goal, coords) in enumerate(zip(goal_states, goal_coords)):
@@ -99,4 +99,4 @@ ax.set_xlim(-5, 5)
 ax.set_ylim(-5, 5)
 fig.tight_layout()
 # plt.show()
-plt.savefig('/home/mons/dev/private/thesis-paper/figures/all_goal_states.pgf')
+plt.savefig('/home/mons/dev/private/thesis-paper/figures/chosen_goal_states.pgf')

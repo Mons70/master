@@ -146,29 +146,38 @@ def set_goal_state(state: int, agent, data):
 
 def get_action_scaling(directory: str):
     ep_paths = os.path.join(directory, "ep_*.json")
-    action_min = 0
-    action_max = 0
+    action_min = np.zeros(12)
+    action_max = np.zeros(12)
     for ep_file in sorted(glob(ep_paths)):
         with open(ep_file, 'r') as f:
             data_dictionary = json.load(f)
         action_values = np.array([ai['actions'] for ai in data_dictionary['actions']])
-        curr_min = np.min(action_values)
-        if curr_min < action_min:
-            action_min = curr_min
-
-        curr_max = np.max(action_values)
-        if curr_max > action_max:
-            action_max = curr_max        
+        for action_sequence in action_values:
+            for i in range(len(action_sequence)):
+                curr_value = action_sequence[i]
+                if curr_value < action_min[i]:
+                    action_min[i] = curr_value
+                if curr_value > action_max[i]:
+                    action_max[i] = curr_value        
 
     return action_min,action_max
 
 def set_action_scalings(actions, action_min, action_max):
-    return np.round(preprocessing.minmax_scale(actions,feature_range=(action_min,action_max),axis=0),2)
+    print(actions)
+    print("Old normalization:")
+    print(np.round(preprocessing.minmax_scale(actions,feature_range=(np.min(action_min),np.max(action_max)),axis=0),2))
+
+    for i in range(len(actions)):
+        actions[i] = (actions[i] * (action_max[i] - action_min[i])) + action_min[i]
+
+    print("New normalization")
+    print(actions)
+    return actions
 
 
 def set_camera_view(position: tuple = (0,0,0), elevation: int = -90, azimuth: int = 90, xml_cam_id: str = None):
     # Good tracking camera view for quadruped in xml format:
-    # <camera name="robot_cam" pos="0 2 2" xyaxes="-1 0 0 0 -0.707 0.707" mode="trackcom"/>
+    # <camera name="robot_cam" pos="0 4 4" xyaxes="-1 0 0 0 -0.707 0.707" mode="trackcom"/>
     if xml_cam_id != None:
         camera = xml_cam_id
     else:    
@@ -242,7 +251,9 @@ def run_policy(model, agent, data, renderer, time_horizon, random_initial_state:
         )
 
         # Fetch current state as an observation
-        obs = {"pos": np.array(data.qpos),"vel": np.array(data.qvel)}
+        # obs = {"pos": np.array(data.qpos),"vel": np.array(data.qvel)}
+        obs = {"pos": preprocessing.minmax_scale(np.array(data.qpos),feature_range=(-1,1),axis=0),"vel": preprocessing.minmax_scale(np.array(data.qvel),feature_range=(-1,1),axis=0)}
+
         print("OBS: ", obs)
         print("GOAL_OBS: ", goal_dict)
 
@@ -330,7 +341,7 @@ def main(policy_path):
     # plot actions
     # plot_actions(actions, len(actions))
     # plot costs
-    plot_rewards(total_reward, len(total_reward[0]), show = True)
+    # plot_rewards(total_reward, len(total_reward[0]), show = True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
