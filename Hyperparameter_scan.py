@@ -61,26 +61,26 @@ def make_generator(config_file, script_file):
     #     values=[0.0003, 0.0001]
     # ) # set / sweep critic learning rate
 
-    generator.add_param(
-        key="algo.alpha",
-        name="alpha",
-        group=0,
-        values=[2.5, 2.75, 3.0, 2.5]
-    )
+    # generator.add_param(
+    #     key="algo.alpha",
+    #     name="alpha",
+    #     group=0,
+    #     values=[1.0]
+    # )
 
-    generator.add_param(
-        key="algo.optim_params.actor.learning_rate.epoch_schedule",
-        name="actor_schedule",
-        group=0,
-        values=[[],[],[],[1000, 1500]]
-    ) # set / sweep actor learning rate
+    # generator.add_param(
+    #     key="algo.optim_params.actor.learning_rate.epoch_schedule",
+    #     name="actor_schedule",
+    #     group=0,
+    #     values=[[],[],[],[1000, 1500]]
+    # ) # set / sweep actor learning rate
 
-    generator.add_param(
-        key="algo.optim_params.critic.learning_rate.epoch_schedule",
-        name="critic_schedule",
-        group=0,
-        values=[[],[],[],[1000, 1500]]
-    ) # set / sweep critic learning rate
+    # generator.add_param(
+    #     key="algo.optim_params.critic.learning_rate.epoch_schedule",
+    #     name="critic_schedule",
+    #     group=0,
+    #     values=[[],[],[],[1000, 1500]]
+    # ) # set / sweep critic learning rate
 
 
     ...

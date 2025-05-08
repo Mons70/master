@@ -240,7 +240,7 @@ class MUJOCO_POLICY_AGENT():
         self._init_agent_cost_terms()
 
         # get max and min action values from collected data to scale policy actions back to environment corrected actions
-        print("Fetching max- and min-action values for scaling ...")
+        # print("Fetching max- and min-action values for scaling ...")
 
 
         if camera_id == None:
@@ -256,7 +256,6 @@ class MUJOCO_POLICY_AGENT():
             frames = []
 
         if disturbance:
-            terrain_id = self.model.geom_name2id("terrain")
             self.model.geom_friction = [0.05, 0.005, 0.0001]
 
         if random_initial_state:
@@ -376,57 +375,57 @@ class MUJOCO_POLICY_AGENT():
         
         return self.states.tolist(), self.actions.tolist(), self.rewards.tolist(), self.total_reward.tolist(), self.ctrl.tolist(), self.body_height, self.goal_state
     
-def plot_states(states, time_horizon, show:bool = False):
-    #State shape = timesteps x dim(state space)
-    fig = plt.figure()
-    time = np.arange(0, time_horizon)
-    states[:,2] = states[:,2] % 2*np.pi
-    plt.plot(time, states)
-    plt.legend()
-    plt.xlabel("Timesteps")
-    plt.ylabel("State values")
-    if show:
-       plt.show()
+# def plot_states(states, time_horizon, show:bool = False):
+#     #State shape = timesteps x dim(state space)
+#     fig = plt.figure()
+#     time = np.arange(0, time_horizon)
+#     states[:,2] = states[:,2] % 2*np.pi
+#     plt.plot(time, states)
+#     plt.legend()
+#     plt.xlabel("Timesteps")
+#     plt.ylabel("State values")
+#     if show:
+#        plt.show()
 
 
-def plot_actions(actions, time_horizon, show:bool = False):
-    fig = plt.figure()
-    time = np.arange(0, time_horizon)
-    actions_list = []
-    for dict in actions:
-        actions_list.append(*dict.values())
-    print(actions_list)
-    plt.plot(time, actions_list)
-    plt.legend()
-    plt.xlabel("Timesteps")
-    plt.ylabel("Control")
-    if show:
-       plt.show()
+# def plot_actions(actions, time_horizon, show:bool = False):
+#     fig = plt.figure()
+#     time = np.arange(0, time_horizon)
+#     actions_list = []
+#     for dict in actions:
+#         actions_list.append(*dict.values())
+#     print(actions_list)
+#     plt.plot(time, actions_list)
+#     plt.legend()
+#     plt.xlabel("Timesteps")
+#     plt.ylabel("Control")
+#     if show:
+#        plt.show()
 
-def plot_rewards(total_reward, time_horizon, show:bool = False):
-    fig = plt.figure()
-    time = np.arange(0, time_horizon)
-    # for i, c in enumerate(agent.get_cost_term_values().items()):
-    #     plt.plot(time[:], rewards[i, :], label=c[0])
+# def plot_rewards(total_reward, time_horizon, show:bool = False):
+#     fig = plt.figure()
+#     time = np.arange(0, time_horizon)
+#     # for i, c in enumerate(agent.get_cost_term_values().items()):
+#     #     plt.plot(time[:], rewards[i, :], label=c[0])
 
-    plt.plot(time[:], total_reward[0,:], label="Total (weighted)", color="black")
-    plt.legend()
-    plt.xlabel("Timesteps")
-    plt.ylabel("Rewards")
-    if show:
-        plt.show()
+#     plt.plot(time[:], total_reward[0,:], label="Total (weighted)", color="black")
+#     plt.legend()
+#     plt.xlabel("Timesteps")
+#     plt.ylabel("Rewards")
+#     if show:
+#         plt.show()
 
 
-def main(rl_policy_path: str, bc_policy_path: str):
-    T = 100
+def main(rl_policy_path: str, bc_policy_path: str, disturbance:bool = False):
+    T = 1000
     policies = ['mpc', bc_policy_path, rl_policy_path]
     policy_names = ['MPC', 'Behavioral cloning', 'Offline RL']
-    goals = [1,2] #, 8, 11]#, 14, 17]
-    runs_pr_goal = 2
+    goals = [1, 4, 8, 11, 14, 17]
+    runs_pr_goal = 10
     policy_trajectories = {}
     for current_policy, policy_name in zip(policies, policy_names):
         if current_policy != "mpc":
-            action_min, action_max = get_action_scaling("/home/mons/dev/private/master/saved_trajectories/1000_quads")
+            action_min, action_max = get_action_scaling("/home/mons/dev/private/master/saved_trajectories/new_dataset") #Set to correct json source for dataset for correct action scaling!!!
         print(f'Running {policy_name}:')
         goal_trajectories = {}
         
@@ -452,14 +451,18 @@ def main(rl_policy_path: str, bc_policy_path: str):
                 #qpos, qvel, ctrl, cost_terms, cost_total = run_planner(model, agent, data, renderer, T, True, False, savepath = f'./saved_trajectories/trajectories_model_{i}.csv')
 
                 states, actions, rewards, total_reward, ctrl, body_height, goal_state = mujoco_agent.run_policy(random_initial_state=False, goal_state=goal, camera_id="robot_cam", 
-                                                                                                        policy_path=str(current_policy), disturbance=True)
+                                                                                                        policy_path=str(current_policy), disturbance=disturbance)
                 goal_trajectories[goal].append({'states': states, 'actions': actions, 'rewards': rewards, 'total_reward': total_reward,
                                                 'ctrl': ctrl, 'body_height': body_height, 'goal_state': goal_state})
         policy_trajectories[policy_name] = goal_trajectories
     
-    print(policy_trajectories)
-    with open('./tests/test_data.json', 'w') as f:
-        json.dump(policy_trajectories, f)
+    # print(policy_trajectories)
+    if disturbance:
+        with open('./tests/test_data_disturbed.json', 'w') as f:
+            json.dump(policy_trajectories, f)
+    else:
+        with open('./tests/test_data_undisturbed.json', 'w') as f:
+            json.dump(policy_trajectories, f)
 
 
 if __name__ == "__main__":
@@ -476,4 +479,5 @@ if __name__ == "__main__":
         help="Path to the behaviour cloning policy .pth file",
     )
     args = parser.parse_args()
-    main(args.rl_policy, args.bc_policy)
+    main(args.rl_policy, args.bc_policy, disturbance=False)
+    main(args.rl_policy, args.bc_policy, disturbance=True)
