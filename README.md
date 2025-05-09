@@ -2,7 +2,7 @@
 All source code and documents for my master thesis
 
 
-# Training Real-world robust offline Reinforcement learning (RL) policies using Motion Planning Control (MPC) trajectories
+# Training Real-world robust offline Reinforcement learning (RL) policies using Model Predictive Control (MPC) trajectories
 
 ## Project progess steps and status:
 
